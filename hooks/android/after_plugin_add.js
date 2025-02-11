@@ -133,7 +133,7 @@ module.exports = function (context) {
                     if (!permissionsNode) {
                         // Append <uses-permission> element to the root
                         permissionsNode = [];
-                        result['manifest']['uses-permission'] = queriesNode;
+                        result['manifest']['uses-permission'] = permissionsNode;
                     } else {
                         console.log('<uses-permission> node already exists.');
                     }
