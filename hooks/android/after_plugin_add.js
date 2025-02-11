@@ -137,7 +137,8 @@ module.exports = function (context) {
                     } else {
                         console.log('<uses-permission> node already exists.');
                     }
-                    
+
+                    let permissionExists = false;
                     permissionsNode.forEach(permission => {
                         if (permission.$ && permission.$['android:name'] == permissionName) {
                             permissionExists = true;
