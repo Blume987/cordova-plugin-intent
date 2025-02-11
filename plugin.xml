@@ -29,7 +29,7 @@
                 android:exported="false"
                 android:grantUriPermissions="true">
                 <meta-data
-                    android:name="androidx.core.content.FileProvider"
+                    android:name="android.support.FILE_PROVIDER_PATHS2"
                     android:resource="@xml/intent_provider_paths"/>
             </provider>
         </config-file>
