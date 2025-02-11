@@ -16,13 +16,13 @@
             </feature>
 	    <preference name="AndroidXEnabled" value="true" />
         </config-file>
-        <edit-config target="AndroidManifest.xml" parent="application/activity">
+        <config-file target="AndroidManifest.xml" parent="application/activity" mode="merge">
             <intent-filter>
                 <action android:name="com.tiperes.cordova.plugin.intent.ACTION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </edit-config>
-        <edit-config target="AndroidManifest.xml" parent="application">
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="application" mode="merge">
             <provider
                 android:name="com.tiperes.cordova.plugin.intent.CordovaPluginIntentFileProvider"
                 android:authorities="${applicationId}.cordova.plugin.intent.fileprovider"
@@ -32,7 +32,7 @@
                     android:name="android.support.FILE_PROVIDER_PATHS2"
                     android:resource="@xml/intent_provider_paths"/>
             </provider>
-        </edit-config>
+        </config-file>
         <source-file src="src/android/IntentShim.java" target-dir="src/com/tiperes/plugin/intent" />
         <source-file src="src/android/CordovaPluginIntentFileProvider.java" target-dir="src/com/tiperes/plugin/intent" />
 		<resource-file src="src/android/res/xml/intent_provider_paths.xml" target-dir="res/xml"/>
