@@ -49,14 +49,13 @@ IntentShim.prototype.startService = function (params, successCallback, errorCall
     exec(successCallback, errorCallback, "IntentShim", "startService", [params]);
 };
 
-IntentShim.prototype.registerBroadcastReceiver = function (params, callback) {
-    argscheck.checkArgs('of', 'IntentShim.registerBroadcastReceiver', arguments);
-    exec(callback, null, "IntentShim", "registerBroadcastReceiver", [params]);
+IntentShim.prototype.registerBroadcastReceiver = function (params, successCallback, errorCallback) {
+    argscheck.checkArgs('off', 'IntentShim.registerBroadcastReceiver', arguments);
+    exec(successCallback, errorCallback, "IntentShim", "registerBroadcastReceiver", [params]);
 };
 
-IntentShim.prototype.unregisterBroadcastReceiver = function () {
-    argscheck.checkArgs('', 'IntentShim.unregisterBroadcastReceiver', arguments);
-    exec(null, null, "IntentShim", "unregisterBroadcastReceiver", []);
+IntentShim.prototype.unregisterBroadcastReceiver = function (params) {
+    exec(null, null, "IntentShim", "unregisterBroadcastReceiver", params ? [params] : []);
 };
 
 IntentShim.prototype.onIntent = function (callback) {
