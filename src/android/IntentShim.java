@@ -45,13 +45,76 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static android.os.Environment.getExternalStorageDirectory;
 import static android.os.Environment.getExternalStorageState;
 
 public class IntentShim extends CordovaPlugin
 {
-    private final Map<BroadcastReceiver, CallbackContext> receiverCallbacks = new HashMap<>();
+    /**
+     * An extended BroadcastReceiver that supports a contextualized plugin callback on receive event.
+     */
+    private class UniqueBroadcastReceiver extends BroadcastReceiver {
+        public String UUID;
+        private CallbackContext _callbackContext;
+        
+        public UniqueBroadcastReceiver(String uuid, CallbackContext callbackContext) {
+            super();
+            this.UUID = uuid != null && uuid != "" ? uuid : UUID.randomUUID().toString();
+            this._callbackContext = callbackContext;
+        }
+    
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, getIntentJson(intent));
+            result.setKeepCallback(true);
+            this._callbackContext.sendPluginResult(result);
+        }
+
+        public bool Register(CordovaInterface cordova, IntentFilter filter, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+            StringBuilder sb = new StringBuilder();
+            // Serialize actions
+            sb.append("\nActions: ");
+            for (int i = 0; i < filter.countActions(); i++) {
+                sb.append(filter.getAction(i)).append(", ");
+            } 
+            // Serialize categories
+            sb.append("\nCategories: ");
+            for (int i = 0; i < filter.countCategories(); i++) {
+                sb.append(filter.getCategory(i)).append(", ");
+            }  
+            // Serialize data schemes
+            sb.append("\nData Schemes: ");
+            for (int i = 0; i < filter.countDataSchemes(); i++) {
+                sb.append(filter.getDataScheme(i)).append(", ");
+            }
+            Log.d(LOG_TAG, "Registering broadcast receiver #" + this.UUID + sb.toString());
+            
+            UniqueBroadcastReceiver replacedReceiver broadcastReceivers.put(this.UUID, this);
+            // If a previous Broadcast Receiver existed (same UUID), unregister it.
+            if (replacedReceiver != null) {
+                try {
+                    cordova.getActivity().unregisterReceiver(replacedReceiver);
+                }
+                catch (Exception e) {/* Don't care...*/ }
+            }
+            cordova.getActivity().registerReceiver(this, filter);
+        }
+
+        public bool Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+            Log.d(LOG_TAG, "Unregistering broadcast receiver #" + this.UUID);
+            
+            try {
+                cordova.getActivity().unregisterReceiver(this);
+            }
+            catch (Exception e) {/* Don't care...*/ }
+            broadcastReceivers.remove(this.UUID);
+        }
+    }
+    
+    // Broadcast Receiver UUID >> CallbackContext
+    private final Map<String, UniqueBroadcastReceiver> broadcastReceivers = new HashMap<>();
 
     private static final String LOG_TAG = "Cordova Intents Shim";
     private CallbackContext onNewIntentCallbackContext = null;
@@ -109,35 +172,27 @@ public class IntentShim extends CordovaPlugin
             }
             else if (action.equals("registerBroadcastReceiver"))
             {
-                Log.d(LOG_TAG, "Plugin no longer unregisters receivers on registerBroadcastReceiver invocation");
-    
                 //  No error callback
                 if (args.length() != 1) {
                     callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
                     return false;
                 }
-    
-                //  Expect an array of filterActions
-                JSONObject obj = args.getJSONObject(0);
+
                 IntentFilter filter = new IntentFilter();
                 
+                JSONObject obj = args.getJSONObject(0);
+                //  Allow an array of filterActions
                 JSONArray filterActions = obj.has("filterActions") ? obj.getJSONArray("filterActions") : null;
-                if (filterActions == null || filterActions.length() == 0)
-                {
-                    //  The arguments are not correct
-                    Log.w(LOG_TAG, "filterActions argument is not in the expected format");
+                if (filterActions == null || filterActions.length() == 0) {
                     throw new IllegalArgumentException("Filter Actions is mandatory");
                 }
-    
                 for (int i = 0; i < filterActions.length(); i++) {
-                    Log.d(LOG_TAG, "Registering broadcast receiver for filter: " + filterActions.getString(i));
                     filter.addAction(filterActions.getString(i));
                 }
                 //  Allow an array of filterCategories
                 JSONArray filterCategories = obj.has("filterCategories") ? obj.getJSONArray("filterCategories") : null;
                 if (filterCategories != null) {
                     for (int i = 0; i < filterCategories.length(); i++) {
-                        Log.d(LOG_TAG, "Registering broadcast receiver for category filter: " + filterCategories.getString(i));
                         filter.addCategory(filterCategories.getString(i));
                     }
                 }
@@ -146,32 +201,34 @@ public class IntentShim extends CordovaPlugin
                 JSONArray filterDataSchemes = obj.has("filterDataSchemes") ? obj.getJSONArray("filterDataSchemes") : null;
                 if (filterDataSchemes != null) {
                     for (int i = 0; i < filterDataSchemes.length(); i++) {
-                        Log.d(LOG_TAG, "Associating data scheme to filter: " + filterDataSchemes.getString(i));
                         filter.addDataScheme(filterDataSchemes.getString(i));
                     }
                 }
 
-                PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
+                String uuid = obj.has("uuid") ? obj.getString("uuid") : null;
+                UniqueBroadcastReceiver broadcastReceiver = new UniqueBroadcastReceiver(uuid, callbackContext);
+                broadcastReceiver.Register(this.cordova, broadcastReceivers, filter);
+                
+                PluginResult result = new PluginResult(PluginResult.Status.OK, broadcastReceiver.UUID);
                 result.setKeepCallback(true);
-                BroadcastReceiver broadcastReceiver = newBroadcastReceiver();
-                this.cordova.getActivity().registerReceiver(broadcastReceiver, filter);
-                receiverCallbacks.put(broadcastReceiver, callbackContext);
                 callbackContext.sendPluginResult(result);
             }
             else if (action.equals("unregisterBroadcastReceiver"))
             {
-                try
+                String uuid = args.length() == 1 ? args.getString(0) : null;
+                if (uuid == null)
                 {
-                    Log.d(LOG_TAG, "Unregistering all broadcast receivers, size was " + receiverCallbacks.size());
-                    for (BroadcastReceiver broadcastReceiver: receiverCallbacks.keySet()){
-                        this.cordova.getActivity().unregisterReceiver(broadcastReceiver);
+                    // Unregister all registered broadcast receivers
+                    for (UniqueBroadcastReceiver broadcastReceiver:  new ArrayList<>(map.values()) {
+                        broadcastReceiver.Unregister(this.cordova, broadcastReceivers);
                     }
                 }
-                catch (Exception e) {
-                    // Don't care...   
-                }
-                finally {
-                    receiverCallbacks.clear();
+                else {
+                    // If registered, Unregister the broadcast receiver with a given UUID
+                    UniqueBroadcastReceiver broadcastReceiver = broadcastReceivers.get(uuid);
+                    if (broadcastReceiver != null) {
+                        broadcastReceiver.Unregister(this.cordova, broadcastReceivers);
+                    }
                 }
             }
             else if (action.equals("onIntent"))
@@ -379,7 +436,6 @@ public class IntentShim extends CordovaPlugin
 
     /**
      * Sends the provided Intent to the onNewIntentCallbackContext.
-     *
      * @param intent This is the intent to send to the JS layer.
      */
     private void fireOnNewIntent(Intent intent)
@@ -435,22 +491,6 @@ public class IntentShim extends CordovaPlugin
             canceledResult.setKeepCallback(true);
             onActivityResultCallbackContext.sendPluginResult(canceledResult);
         }
-    }
-
-    private BroadcastReceiver newBroadcastReceiver() {
-        return new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                CallbackContext onBroadcastCallbackContext = receiverCallbacks.get(this);
-                if (onBroadcastCallbackContext != null)
-                {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, getIntentJson(intent));
-                    result.setKeepCallback(true);
-                    onBroadcastCallbackContext.sendPluginResult(result);
-                }
-            }
-        };
     }
     
     private Intent populateIntent(JSONObject obj, CallbackContext callbackContext)
