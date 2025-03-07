@@ -84,5 +84,3 @@ IntentShim.prototype.packageExists = function (packageName, successCallback, err
 };
 
 window.intentShim = new IntentShim();
-window.plugins = window.plugins || {};
-window.plugins.intentShim = window.intentShim;
