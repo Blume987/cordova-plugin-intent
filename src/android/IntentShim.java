@@ -147,6 +147,15 @@ public class IntentShim extends CordovaPlugin
                 this.cordova.getActivity().sendBroadcast(intent);
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
             }
+            else if (action.equals("sendOrderedBroadcast"))
+            {    
+                // Parse the arguments
+                JSONObject obj = args.getJSONObject(0);
+                Intent intent = populateIntent(obj, callbackContext);
+    
+                this.cordova.getActivity().sendOrderedBroadcast(intent);
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+            }
             else if (action.equals("startService"))
             {
                 JSONObject obj = args.getJSONObject(0);
