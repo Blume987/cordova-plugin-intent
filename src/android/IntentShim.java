@@ -131,13 +131,7 @@ public class IntentShim extends CordovaPlugin
         {
             Log.d(LOG_TAG, "Action: " + action);
             if (action.equals("startActivity") || action.equals("startActivityForResult"))
-            {
-                //  Credit: https://github.com/chrisekelley/cordova-webintent
-                if (args.length() != 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-    
+            {    
                 JSONObject obj = args.getJSONObject(0);
                 Intent intent = populateIntent(obj, callbackContext);
                 int requestCode = obj.has("requestCode") ? obj.getInt("requestCode") : 1;
@@ -145,13 +139,7 @@ public class IntentShim extends CordovaPlugin
                 startActivity(intent, action.equals("startActivityForResult"), requestCode, callbackContext);
             }
             else if (action.equals("sendBroadcast"))
-            {
-                //  Credit: https://github.com/chrisekelley/cordova-webintent
-                if (args.length() != 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-    
+            {    
                 // Parse the arguments
                 JSONObject obj = args.getJSONObject(0);
                 Intent intent = populateIntent(obj, callbackContext);
@@ -161,10 +149,6 @@ public class IntentShim extends CordovaPlugin
             }
             else if (action.equals("startService"))
             {
-                if (args.length() != 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
                 JSONObject obj = args.getJSONObject(0);
                 Intent intent = populateIntent(obj, callbackContext);
                 this.cordova.getActivity().startService(intent);
@@ -172,12 +156,6 @@ public class IntentShim extends CordovaPlugin
             }
             else if (action.equals("registerBroadcastReceiver"))
             {
-                //  No error callback
-                if (args.length() != 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-
                 IntentFilter filter = new IntentFilter();
                 
                 JSONObject obj = args.getJSONObject(0);
@@ -215,8 +193,8 @@ public class IntentShim extends CordovaPlugin
             }
             else if (action.equals("unregisterBroadcastReceiver"))
             {
-                String uuid = args.length() == 1 ? args.getString(0) : null;
-                if (uuid == null)
+                String uuid = args.getString(0);
+                if (uuid == "" )
                 {
                     // Unregister all registered broadcast receivers
                     for (UniqueBroadcastReceiver broadcastReceiver:  new ArrayList<>(map.values()) {
@@ -232,13 +210,7 @@ public class IntentShim extends CordovaPlugin
                 }
             }
             else if (action.equals("onIntent"))
-            {
-                //  Credit: https://github.com/napolitano/cordova-plugin-intent
-                if (args.length() != 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-    
+            {    
                 this.onNewIntentCallbackContext = callbackContext;
     
                 if (this.deferredIntent != null) {
@@ -251,13 +223,7 @@ public class IntentShim extends CordovaPlugin
                 callbackContext.sendPluginResult(result);
             }
             else if (action.equals("getIntent"))
-            {
-                //  Credit: https://github.com/napolitano/cordova-plugin-intent
-                if (args.length() != 0) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-    
+            {    
                 Intent intent;
     
                 if (this.deferredIntent != null) {
@@ -276,14 +242,9 @@ public class IntentShim extends CordovaPlugin
                 //  https://github.com/darryncampbell/darryncampbell-cordova-plugin-intent/issues/3
                 
                 // tiperes: Normalized parameters processing based in a Intent object, allowing full customization of the result intent to send.
-                int resultCode = Activity.RESULT_OK;
-                Intent result = new Intent();
-                
-                if (args.length() == 1) {
-                    JSONObject obj = args.getJSONObject(0);
-                    resultCode = obj.has("resultCode") ? obj.getInt("resultCode") : Activity.RESULT_OK;
-                    result = populateIntent(obj, callbackContext);
-                }            
+                JSONObject obj = args.getJSONObject(0);
+                int resultCode = obj.has("resultCode") ? obj.getInt("resultCode") : Activity.RESULT_OK;
+                Intent result = populateIntent(obj, callbackContext);           
                 
                 //set result
                 cordova.getActivity().setResult(resultCode, result);
@@ -294,22 +255,12 @@ public class IntentShim extends CordovaPlugin
             }
             else if (action.equals("realPathFromUri"))
             {
-                if (args.length() != 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-    
                 JSONObject obj = args.getJSONObject(0);
                 String realPath = getRealPathFromURI_API19(obj, callbackContext);
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, realPath));
             }
             else if (action.equals("packageExists"))
             {
-                if (args.length() < 1) {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-                    return false;
-                }
-
                 boolean packageFound = checkPackageExists(args.getString(0));
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, packageFound));
             }
