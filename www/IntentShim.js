@@ -42,6 +42,11 @@ window.IntentShim.sendBroadcast = function (arg, successCallback, errorCallback)
     exec(successCallback, errorCallback, "IntentShim", "sendBroadcast", [arg]);
 };
 
+window.IntentShim.sendOrderedBroadcast = function (arg, successCallback, errorCallback) {
+    argscheck.checkArgs('off', 'IntentShim.sendOrderedBroadcast', arguments);
+    exec(successCallback, errorCallback, "IntentShim", "sendOrderedBroadcast", [arg]);
+};
+
 window.IntentShim.startService = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startService', arguments);
     exec(successCallback, errorCallback, "IntentShim", "startService", [arg]);
