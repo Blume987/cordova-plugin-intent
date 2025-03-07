@@ -83,4 +83,4 @@ IntentShim.prototype.packageExists = function (packageName, successCallback, err
     exec(successCallback, errorCallback, "IntentShim", "packageExists", [packageName]);
 };
 
-window.intentShim = new IntentShim();
+window.IntentShim = new IntentShim();
