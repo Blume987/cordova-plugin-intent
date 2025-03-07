@@ -27,38 +27,39 @@ window.IntentShim.ACTION_PICK = "android.intent.action.PICK";
 window.IntentShim.RESULT_CANCELED = 0; //  Activity.RESULT_CANCELED
 window.IntentShim.RESULT_OK = -1; //  Activity.RESULT_OK
 
-window.IntentShim.startActivity = function (params, successCallback, errorCallback) {
+window.IntentShim.startActivity = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startActivity', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "startActivity", [params]);
+    exec(successCallback, errorCallback, "IntentShim", "startActivity", [arg]);
 };
 
-window.IntentShim.startActivityForResult = function (params, successCallback, errorCallback) {
+window.IntentShim.startActivityForResult = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startActivityForResult', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "startActivityForResult", [params]);
+    exec(successCallback, errorCallback, "IntentShim", "startActivityForResult", [arg]);
 };
 
-window.IntentShim.sendBroadcast = function (params, successCallback, errorCallback) {
+window.IntentShim.sendBroadcast = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.sendBroadcast', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "sendBroadcast", [params]);
+    exec(successCallback, errorCallback, "IntentShim", "sendBroadcast", [arg]);
 };
 
-window.IntentShim.startService = function (params, successCallback, errorCallback) {
+window.IntentShim.startService = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startService', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "startService", [params]);
+    exec(successCallback, errorCallback, "IntentShim", "startService", [arg]);
 };
 
-window.IntentShim.registerBroadcastReceiver = function (params, successCallback, errorCallback) {
+window.IntentShim.registerBroadcastReceiver = function (arg, callback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.registerBroadcastReceiver', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "registerBroadcastReceiver", [params]);
+    exec(callback, errorCallback, "IntentShim", "registerBroadcastReceiver", [arg]);
 };
 
-window.IntentShim.unregisterBroadcastReceiver = function (params) {
-    exec(null, null, "IntentShim", "unregisterBroadcastReceiver", params ? [params] : []);
+window.IntentShim.unregisterBroadcastReceiver = function (arg) {
+    argscheck.checkArgs('s', 'IntentShim.unregisterBroadcastReceiver', arguments);
+    exec(null, null, "IntentShim", "unregisterBroadcastReceiver", [arg || ""]);
 };
 
-window.IntentShim.onIntent = function (callback) {
-    argscheck.checkArgs('f', 'IntentShim.onIntent', arguments);
-    exec(callback, null, "IntentShim", "onIntent", [callback]);
+window.IntentShim.onIntent = function (callback, errorCallback) {
+    argscheck.checkArgs('ff', 'IntentShim.onIntent', arguments);
+    exec(callback, errorCallback, "IntentShim", "onIntent", [callback]);
 };
 
 window.IntentShim.getIntent = function (successCallback, errorCallback) {
@@ -66,14 +67,14 @@ window.IntentShim.getIntent = function (successCallback, errorCallback) {
     exec(successCallback, errorCallback, "IntentShim", "getIntent", []);
 };
 
-window.IntentShim.sendResult = function (params, successCallback, errorCallback) {
+window.IntentShim.sendResult = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.sendResult', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "sendResult", [params]);
+    exec(successCallback, errorCallback, "IntentShim", "sendResult", [arg]);
 }
 
-window.IntentShim.realPathFromUri = function (params, successCallback, errorCallback) {
+window.IntentShim.realPathFromUri = function (arg, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.realPathFromUri', arguments);
-    exec(successCallback, errorCallback, "IntentShim", "realPathFromUri", [params]);
+    exec(successCallback, errorCallback, "IntentShim", "realPathFromUri", [arg]);
 };
 
 window.IntentShim.packageExists = function (packageName, successCallback, errorCallback) {
