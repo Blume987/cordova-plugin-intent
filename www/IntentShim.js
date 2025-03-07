@@ -9,78 +9,74 @@ var argscheck = require('cordova/argscheck'),
  * This represents a thin shim layer over the Android Intent implementation
  * @constructor
  */
-function IntentShim() {
-    var me = this;
-}
+window.IntentShim = {};
 
-IntentShim.prototype.ACTION_SEND = "android.intent.action.SEND";
-IntentShim.prototype.ACTION_VIEW = "android.intent.action.VIEW";
-IntentShim.prototype.ACTION_INSTALL_PACKAGE = "android.intent.action.INSTALL_PACKAGE";
-IntentShim.prototype.ACTION_UNINSTALL_PACKAGE = "android.intent.action.UNINSTALL_PACKAGE";
-IntentShim.prototype.EXTRA_TEXT = "android.intent.extra.TEXT";
-IntentShim.prototype.EXTRA_SUBJECT = "android.intent.extra.SUBJECT";
-IntentShim.prototype.EXTRA_STREAM = "android.intent.extra.STREAM";
-IntentShim.prototype.EXTRA_EMAIL = "android.intent.extra.EMAIL";
-IntentShim.prototype.ACTION_CALL = "android.intent.action.CALL";
-IntentShim.prototype.ACTION_SENDTO = "android.intent.action.SENDTO";
+window.IntentShim.ACTION_SEND = "android.intent.action.SEND";
+window.IntentShim.ACTION_VIEW = "android.intent.action.VIEW";
+window.IntentShim.ACTION_INSTALL_PACKAGE = "android.intent.action.INSTALL_PACKAGE";
+window.IntentShim.ACTION_UNINSTALL_PACKAGE = "android.intent.action.UNINSTALL_PACKAGE";
+window.IntentShim.EXTRA_TEXT = "android.intent.extra.TEXT";
+window.IntentShim.EXTRA_SUBJECT = "android.intent.extra.SUBJECT";
+window.IntentShim.EXTRA_STREAM = "android.intent.extra.STREAM";
+window.IntentShim.EXTRA_EMAIL = "android.intent.extra.EMAIL";
+window.IntentShim.ACTION_CALL = "android.intent.action.CALL";
+window.IntentShim.ACTION_SENDTO = "android.intent.action.SENDTO";
 //  StartActivityForResult
-IntentShim.prototype.ACTION_GET_CONTENT = "android.intent.action.GET_CONTENT";
-IntentShim.prototype.ACTION_PICK = "android.intent.action.PICK";
-IntentShim.prototype.RESULT_CANCELED = 0; //  Activity.RESULT_CANCELED
-IntentShim.prototype.RESULT_OK = -1; //  Activity.RESULT_OK
+window.IntentShim.ACTION_GET_CONTENT = "android.intent.action.GET_CONTENT";
+window.IntentShim.ACTION_PICK = "android.intent.action.PICK";
+window.IntentShim.RESULT_CANCELED = 0; //  Activity.RESULT_CANCELED
+window.IntentShim.RESULT_OK = -1; //  Activity.RESULT_OK
 
-IntentShim.prototype.startActivity = function (params, successCallback, errorCallback) {
+window.IntentShim.startActivity = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startActivity', arguments);
     exec(successCallback, errorCallback, "IntentShim", "startActivity", [params]);
 };
 
-IntentShim.prototype.startActivityForResult = function (params, successCallback, errorCallback) {
+window.IntentShim.startActivityForResult = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startActivityForResult', arguments);
     exec(successCallback, errorCallback, "IntentShim", "startActivityForResult", [params]);
 };
 
-IntentShim.prototype.sendBroadcast = function (params, successCallback, errorCallback) {
+window.IntentShim.sendBroadcast = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.sendBroadcast', arguments);
     exec(successCallback, errorCallback, "IntentShim", "sendBroadcast", [params]);
 };
 
-IntentShim.prototype.startService = function (params, successCallback, errorCallback) {
+window.IntentShim.startService = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.startService', arguments);
     exec(successCallback, errorCallback, "IntentShim", "startService", [params]);
 };
 
-IntentShim.prototype.registerBroadcastReceiver = function (params, successCallback, errorCallback) {
+window.IntentShim.registerBroadcastReceiver = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.registerBroadcastReceiver', arguments);
     exec(successCallback, errorCallback, "IntentShim", "registerBroadcastReceiver", [params]);
 };
 
-IntentShim.prototype.unregisterBroadcastReceiver = function (params) {
+window.IntentShim.unregisterBroadcastReceiver = function (params) {
     exec(null, null, "IntentShim", "unregisterBroadcastReceiver", params ? [params] : []);
 };
 
-IntentShim.prototype.onIntent = function (callback) {
+window.IntentShim.onIntent = function (callback) {
     argscheck.checkArgs('f', 'IntentShim.onIntent', arguments);
     exec(callback, null, "IntentShim", "onIntent", [callback]);
 };
 
-IntentShim.prototype.getIntent = function (successCallback, errorCallback) {
+window.IntentShim.getIntent = function (successCallback, errorCallback) {
     argscheck.checkArgs('ff', 'IntentShim.getIntent', arguments);
     exec(successCallback, errorCallback, "IntentShim", "getIntent", []);
 };
 
-IntentShim.prototype.sendResult = function (params, successCallback, errorCallback) {
+window.IntentShim.sendResult = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.sendResult', arguments);
     exec(successCallback, errorCallback, "IntentShim", "sendResult", [params]);
 }
 
-IntentShim.prototype.realPathFromUri = function (params, successCallback, errorCallback) {
+window.IntentShim.realPathFromUri = function (params, successCallback, errorCallback) {
     argscheck.checkArgs('off', 'IntentShim.realPathFromUri', arguments);
     exec(successCallback, errorCallback, "IntentShim", "realPathFromUri", [params]);
 };
 
-IntentShim.prototype.packageExists = function (packageName, successCallback, errorCallback) {
+window.IntentShim.packageExists = function (packageName, successCallback, errorCallback) {
     argscheck.checkArgs('sff', 'IntentShim.packageExists', arguments);
     exec(successCallback, errorCallback, "IntentShim", "packageExists", [packageName]);
 };
-
-window.IntentShim = new IntentShim();
