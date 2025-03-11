@@ -53,7 +53,7 @@ public class IntentShim extends CordovaPlugin {
      */
     private class UniqueBroadcastReceiver extends BroadcastReceiver {
 
-        public String UUID;
+        public final String UUID;
         private final CallbackContext _callbackContext;
 
         public UniqueBroadcastReceiver(String uuid, CallbackContext callbackContext) {
@@ -73,19 +73,13 @@ public class IntentShim extends CordovaPlugin {
             StringBuilder sb = new StringBuilder();
             // Serialize actions
             sb.append("\nActions: ");
-            for (int i = 0; i < filter.countActions(); i++) {
-                sb.append(filter.getAction(i)).append(", ");
-            }
+            for (int i = 0; i < filter.countActions(); i++) sb.append(filter.getAction(i)).append(", ");
             // Serialize categories
             sb.append("\nCategories: ");
-            for (int i = 0; i < filter.countCategories(); i++) {
-                sb.append(filter.getCategory(i)).append(", ");
-            }
+            for (int i = 0; i < filter.countCategories(); i++) sb.append(filter.getCategory(i)).append(", ");
             // Serialize data schemes
             sb.append("\nData Schemes: ");
-            for (int i = 0; i < filter.countDataSchemes(); i++) {
-                sb.append(filter.getDataScheme(i)).append(", ");
-            }
+            for (int i = 0; i < filter.countDataSchemes(); i++) sb.append(filter.getDataScheme(i)).append(", ");
             Log.d(LOG_TAG, "Registering broadcast receiver #" + this.UUID + sb);
 
             UniqueBroadcastReceiver replacedReceiver = broadcastReceivers.put(this.UUID, this);
@@ -198,7 +192,7 @@ public class IntentShim extends CordovaPlugin {
                     String uuid = args.getString(0);
 
                     if (Objects.equals(uuid, "")) {
-                        for(var receiver : broadcastReceivers.values()) {
+                        for(UniqueBroadcastReceiver receiver : broadcastReceivers.values()) {
                             if(receiver != null) {
                                 receiver.Unregister(this.cordova, broadcastReceivers);
                             }
@@ -642,7 +636,7 @@ public class IntentShim extends CordovaPlugin {
                 }
                 return result;
             } else if (value instanceof ArrayList<?>) {
-                final var arrayList = (ArrayList<?>) value;
+                final ArrayList<?> arrayList = (ArrayList<?>) value;
                 final JSONArray result = new JSONArray();
                 for (int i = 0; i < arrayList.size(); i++)
                     result.put(toJsonValue(arrayList.get(i)));
@@ -685,7 +679,7 @@ public class IntentShim extends CordovaPlugin {
     }
 
     private Object[] jsonArrayToObjectArray(JSONArray array) throws JSONException {
-        var list = new ArrayList<>();
+        ArrayList<Object> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) list.add(array.get(i));
         return list.toArray();
     }
@@ -737,7 +731,7 @@ public class IntentShim extends CordovaPlugin {
                         //returnBundle.putParcelableArray(key, obj.get);
                     } else {
                         if (key.equals("PLUGIN_CONFIG")) {
-                            var bundleArray = new ArrayList<Bundle>();
+                            ArrayList<Bundle> bundleArray = new ArrayList<Bundle>();
                             for (int k = 0; k < length; k++) {
                                 bundleArray.add(toBundle(jsonArray.getJSONObject(k)));
                             }
