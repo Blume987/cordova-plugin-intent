@@ -1,6 +1,7 @@
-package com.tiperes.cordova.plugin.intent;
+package com.example.myapplication;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -27,6 +28,7 @@ import android.webkit.MimeTypeMap;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaActivity;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.PluginResult;
@@ -45,7 +47,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Objects;
 
 import static android.os.Environment.getExternalStorageDirectory;
 import static android.os.Environment.getExternalStorageState;
@@ -61,7 +63,7 @@ public class IntentShim extends CordovaPlugin
         
         public UniqueBroadcastReceiver(String uuid, CallbackContext callbackContext) {
             super();
-            this.UUID = uuid != null && uuid != "" ? uuid : UUID.randomUUID().toString();
+            this.UUID = uuid != null && !uuid.isEmpty() ? uuid : java.util.UUID.randomUUID().toString();
             this._callbackContext = callbackContext;
         }
     
@@ -72,7 +74,7 @@ public class IntentShim extends CordovaPlugin
             this._callbackContext.sendPluginResult(result);
         }
 
-        public bool Register(CordovaInterface cordova, IntentFilter filter, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+        public void Register(CordovaInterface cordova, IntentFilter filter, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
             StringBuilder sb = new StringBuilder();
             // Serialize actions
             sb.append("\nActions: ");
@@ -89,7 +91,7 @@ public class IntentShim extends CordovaPlugin
             for (int i = 0; i < filter.countDataSchemes(); i++) {
                 sb.append(filter.getDataScheme(i)).append(", ");
             }
-            Log.d(LOG_TAG, "Registering broadcast receiver #" + this.UUID + sb.toString());
+            Log.d(LOG_TAG, "Registering broadcast receiver #" + this.UUID + sb);
             
             UniqueBroadcastReceiver replacedReceiver = broadcastReceivers.put(this.UUID, this);
             // If a previous Broadcast Receiver existed (same UUID), unregister it.
@@ -99,10 +101,10 @@ public class IntentShim extends CordovaPlugin
                 }
                 catch (Exception e) {/* Don't care...*/ }
             }
-            cordova.getActivity().registerReceiver(this, filter);
+            ContextCompat.registerReceiver(cordova.getActivity(), this, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
         }
 
-        public bool Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+        public void Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
             Log.d(LOG_TAG, "Unregistering broadcast receiver #" + this.UUID);
             
             try {
@@ -153,7 +155,7 @@ public class IntentShim extends CordovaPlugin
                 JSONObject obj = args.getJSONObject(0);
                 Intent intent = populateIntent(obj, callbackContext);
     
-                this.cordova.getActivity().sendOrderedBroadcast(intent);
+                this.cordova.getActivity().sendOrderedBroadcast(intent, "");  //.sendOrderedBroadcast(intent);
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
             }
             else if (action.equals("startService"))
@@ -194,7 +196,7 @@ public class IntentShim extends CordovaPlugin
 
                 String uuid = obj.has("uuid") ? obj.getString("uuid") : null;
                 UniqueBroadcastReceiver broadcastReceiver = new UniqueBroadcastReceiver(uuid, callbackContext);
-                broadcastReceiver.Register(this.cordova, broadcastReceivers, filter);
+                broadcastReceiver.Register(this.cordova, filter, broadcastReceivers);
                 
                 PluginResult result = new PluginResult(PluginResult.Status.OK, broadcastReceiver.UUID);
                 result.setKeepCallback(true);
@@ -203,15 +205,7 @@ public class IntentShim extends CordovaPlugin
             else if (action.equals("unregisterBroadcastReceiver"))
             {
                 String uuid = args.getString(0);
-                if (uuid == "" )
-                {
-                    // Unregister all registered broadcast receivers
-                    for (UniqueBroadcastReceiver broadcastReceiver:  new ArrayList<>(map.values()) {
-                        broadcastReceiver.Unregister(this.cordova, broadcastReceivers);
-                    }
-                }
-                else {
-                    // If registered, Unregister the broadcast receiver with a given UUID
+                if(!Objects.equals(uuid, "")) {
                     UniqueBroadcastReceiver broadcastReceiver = broadcastReceivers.get(uuid);
                     if (broadcastReceiver != null) {
                         broadcastReceiver.Unregister(this.cordova, broadcastReceivers);
@@ -250,7 +244,7 @@ public class IntentShim extends CordovaPlugin
                 //  Assuming this application was started with startActivityForResult, send the result back
                 //  https://github.com/darryncampbell/darryncampbell-cordova-plugin-intent/issues/3
                 
-                // tiperes: Normalized parameters processing based in a Intent object, allowing full customization of the result intent to send.
+                // tippers: Normalized parameters processing based in a Intent object, allowing full customization of the result intent to send.
                 JSONObject obj = args.getJSONObject(0);
                 int resultCode = obj.has("resultCode") ? obj.getInt("resultCode") : Activity.RESULT_OK;
                 Intent result = populateIntent(obj, callbackContext);           
@@ -299,6 +293,7 @@ public class IntentShim extends CordovaPlugin
         }
     }
     
+    @SuppressLint("QueryPermissionsNeeded")
     private void resolveActivityPackageOrThrow(Intent intent)
     {
         PackageManager packageManager = this.cordova.getActivity().getPackageManager();
@@ -323,13 +318,13 @@ public class IntentShim extends CordovaPlugin
         {
             String externalStorageState = getExternalStorageState();
             if (externalStorageState.equals(Environment.MEDIA_MOUNTED) || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY)) {
-                String fileName = uriAsString.substring(uriAsString.indexOf('/') + 2, uriAsString.length());
+                String fileName = uriAsString.substring(uriAsString.indexOf('/') + 2);
                 File uriAsFile = new File(fileName);
                 boolean fileExists = uriAsFile.exists();
                 if (!fileExists)
                 {
                     Log.e(LOG_TAG, "File at path " + uriAsFile.getPath() + " with name " + uriAsFile.getName() + "does not exist");
-                    throw new RuntimeException("File not found: " + uriAsFile.toString());
+                    throw new RuntimeException("File not found: " + uriAsFile);
                 }
                 String PACKAGE_NAME = this.cordova.getActivity().getPackageName() + ".cordova.plugin.intent.fileprovider";
                 Uri uri = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), PACKAGE_NAME, uriAsFile);
@@ -351,9 +346,9 @@ public class IntentShim extends CordovaPlugin
         //  Credit: https://stackoverflow.com/questions/2789276/android-get-real-path-by-uri-getpath/2790688
         try {
             Uri uri = Uri.parse(obj.getString("uri"));
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 String filePath = "";
-                if (uri.getHost().contains("com.android.providers.media")) {
+                if (Objects.requireNonNull(uri.getHost()).contains("com.android.providers.media")) {
                     int permissionCheck = ContextCompat.checkSelfPermission(this.cordova.getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
                     if (permissionCheck != PackageManager.PERMISSION_GRANTED)
                     {
@@ -371,6 +366,7 @@ public class IntentShim extends CordovaPlugin
                     String sel = MediaStore.Images.Media._ID + "=?";
                     //  This line requires read storage permission
                     Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{id}, null);
+                    assert cursor != null;
                     int columnIndex = cursor.getColumnIndex(column[0]);
                     if (cursor.moveToFirst()) {
                         filePath = cursor.getString(columnIndex);
@@ -381,6 +377,7 @@ public class IntentShim extends CordovaPlugin
                     // image pick from gallery
                     String[] proj = {MediaStore.Images.Media.DATA};
                     Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(uri, proj, null, null, null);
+                    assert cursor != null;
                     int column_index
                             = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
                     cursor.moveToFirst();
