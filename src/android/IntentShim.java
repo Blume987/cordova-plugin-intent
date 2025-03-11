@@ -91,7 +91,7 @@ public class IntentShim extends CordovaPlugin
             }
             Log.d(LOG_TAG, "Registering broadcast receiver #" + this.UUID + sb.toString());
             
-            UniqueBroadcastReceiver replacedReceiver broadcastReceivers.put(this.UUID, this);
+            UniqueBroadcastReceiver replacedReceiver = broadcastReceivers.put(this.UUID, this);
             // If a previous Broadcast Receiver existed (same UUID), unregister it.
             if (replacedReceiver != null) {
                 try {
