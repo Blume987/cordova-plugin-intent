@@ -1,4 +1,4 @@
-package com.tiperes.cordova.plugin.intent;
+package com.blume987.cordova.plugin.intent;
 
 import static android.os.Environment.getExternalStorageState;
 
