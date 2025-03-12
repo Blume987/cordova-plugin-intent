@@ -36,7 +36,7 @@
             </provider>
         </edit-config>
 	<edit-config target="AndroidManifest.xml" parent="application">
-	    <receiver android:name="com.example.zebraintents.MyReceiver" android:exported="true">
+	    <receiver android:name="com.tiperes.cordova.plugin.intent" android:exported="true">
 	        <intent-filter>
 		    <action android:name="com.zebra.cordovademo.ACTION" />
 		    <action android:name="com.symbol.datawedge.api.RESULT_ACTION" />
