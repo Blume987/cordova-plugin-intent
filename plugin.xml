@@ -15,9 +15,6 @@
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
-	<edit-config target="AndroidManifest.xml" parent="manifest">
-            <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-    	</edit-config>
         <edit-config target="AndroidManifest.xml" parent="application/activity">
             <intent-filter>
                 <action android:name="com.tiperes.cordova.plugin.intent.ACTION" />
