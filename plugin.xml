@@ -15,9 +15,9 @@
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
-	<config-file target="AndroidManifest.xml" parent="manifest">
+	<edit-config target="AndroidManifest.xml" parent="manifest">
             <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-    	</config-file>
+    	</edit-config>
         <edit-config target="AndroidManifest.xml" parent="application/activity">
             <intent-filter>
                 <action android:name="com.tiperes.cordova.plugin.intent.ACTION" />
@@ -30,7 +30,7 @@
             <provider
                 android:name="com.tiperes.cordova.plugin.intent.CordovaPluginIntentFileProvider"
                 android:authorities="${applicationId}.cordova.plugin.intent.fileprovider"
-                android:exported="true"
+                android:exported="false"
                 android:grantUriPermissions="true">
                 <meta-data
                     android:name="android.support.FILE_PROVIDER_PATHS"
