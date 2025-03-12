@@ -19,6 +19,8 @@
         <edit-config target="AndroidManifest.xml" parent="application/activity">
             <intent-filter>
                 <action android:name="com.tiperes.cordova.plugin.intent.ACTION" />
+		<action android:name="com.zebra.cordovademo.ACTION" />
+		<action android:name="com.symbol.datawedge.api.RESULT_ACTION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </edit-config>
@@ -33,6 +35,14 @@
                     android:resource="@xml/intent_provider_paths"/>
             </provider>
         </edit-config>
+	<edit-config target="AndroidManifest.xml" parent="application">
+	    <receiver android:name="com.example.zebraintents.MyReceiver" android:exported="true">
+	        <intent-filter>
+		    <action android:name="com.zebra.cordovademo.ACTION" />
+		    <action android:name="com.symbol.datawedge.api.RESULT_ACTION" />
+	        </intent-filter>
+	    </receiver>
+    	</edit-config>
         <source-file src="src/android/IntentShim.java" target-dir="src/com/tiperes/plugin/intent" />
         <source-file src="src/android/CordovaPluginIntentFileProvider.java" target-dir="src/com/tiperes/plugin/intent" />
 	<resource-file src="src/android/res/xml/intent_provider_paths.xml" target="res/xml/intent_provider_paths.xml"/>
