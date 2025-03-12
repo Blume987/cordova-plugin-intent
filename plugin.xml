@@ -15,10 +15,10 @@
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
-	<edit-config target="AndroidManifest.xml" parent="manifest">
+	<edit-config target="AndroidManifest.xml" parent="*" mode="merge">
             <uses-permission android:name="com.symbol.datawedge.permission.contentprovider" />
     	</edit-config>
-	<edit-config target="AndroidManifest.xml" parent="manifest">
+	<edit-config target="AndroidManifest.xml" parent="*" mode="merge">
             <queries>
                 <package android:name="com.symbol.datawedge" />
             </queries>
