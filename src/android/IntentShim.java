@@ -30,6 +30,7 @@ import androidx.core.content.FileProvider;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaActivity;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.PluginResult;
@@ -321,52 +322,6 @@ public class IntentShim extends CordovaPlugin {
         }
     }
 
-    /** @noinspection unused*/
-    private String getRealPathFromURI_API19(JSONObject obj, CallbackContext callbackContext) {
-        //  Credit: https://stackoverflow.com/questions/2789276/android-get-real-path-by-uri-getpath/2790688
-        try {
-            Uri uri = Uri.parse(obj.getString("uri"));
-            String filePath = "";
-            if (Objects.requireNonNull(uri.getHost()).contains("com.android.providers.media")) {
-                int permissionCheck = ContextCompat.checkSelfPermission(this.cordova.getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
-                if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                    //  Could do better here - if the app does not already have permission should
-                    //  only continue when we get the success callback from this.
-                    ActivityCompat.requestPermissions(this.cordova.getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-                    throw new RuntimeException("Please grant read external storage permission");
-                }
-                // Image pick from recent
-                String wholeID = DocumentsContract.getDocumentId(uri);
-                // Split at colon, use second item in the array
-                String id = wholeID.split(":")[1];
-                String[] column = {MediaStore.Images.Media.DATA};
-                // where id is equal to
-                String sel = MediaStore.Images.Media._ID + "=?";
-                //  This line requires read storage permission
-                Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{id}, null);
-                assert cursor != null;
-                int columnIndex = cursor.getColumnIndex(column[0]);
-                if (cursor.moveToFirst()) {
-                    filePath = cursor.getString(columnIndex);
-                }
-                cursor.close();
-                return filePath;
-            } else {
-                // image pick from gallery
-                String[] proj = {MediaStore.Images.Media.DATA};
-                @SuppressLint("Recycle") Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(uri, proj, null, null, null);
-                assert cursor != null;
-                int column_index
-                        = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                cursor.moveToFirst();
-                return cursor.getString(column_index);
-            }
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "URL is not well formed");
-            throw new RuntimeException("URL is not well formed", e);
-        }
-    }
-
     /**
      * Sends the provided Intent to the onNewIntentCallbackContext.
      *
@@ -600,7 +555,6 @@ public class IntentShim extends CordovaPlugin {
             intentJSON.put("component", intent.getComponent());
             intentJSON.put("data", intent.getData());
             intentJSON.put("package", intent.getPackage());
-
             return intentJSON;
         } catch (Exception e) {
             throw new RuntimeException("Error serializing intent to JSON", e);

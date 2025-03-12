@@ -2,7 +2,7 @@
 <plugin id="cordova-plugin-intent" version="2.2.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>Intent Shim</name>
     <js-module name="IntentShim" src="www/IntentShim.js">
-        <clobbers target="intentShim" />
+        <clobbers target="cordova.plugins.IntentShim" />
     </js-module>
     
     <!-- android -->
