@@ -61,7 +61,7 @@ public class IntentShim extends CordovaPlugin
         
         public UniqueBroadcastReceiver(String uuid, CallbackContext callbackContext) {
             super();
-            this.UUID = uuid != null && uuid != "" ? uuid : UUID.randomUUID().toString();
+            this.UUID = (uuid != null && !uuid.isEmpty()) ? uuid : UUID.randomUUID().toString();
             this._callbackContext = callbackContext;
         }
     
@@ -72,7 +72,7 @@ public class IntentShim extends CordovaPlugin
             this._callbackContext.sendPluginResult(result);
         }
 
-        public bool Register(CordovaInterface cordova, IntentFilter filter, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+        public void Register(CordovaInterface cordova, IntentFilter filter, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
             StringBuilder sb = new StringBuilder();
             // Serialize actions
             sb.append("\nActions: ");
@@ -91,7 +91,7 @@ public class IntentShim extends CordovaPlugin
             }
             Log.d(LOG_TAG, "Registering broadcast receiver #" + this.UUID + sb.toString());
             
-            UniqueBroadcastReceiver replacedReceiver broadcastReceivers.put(this.UUID, this);
+            UniqueBroadcastReceiver replacedReceiver = broadcastReceivers.put(this.UUID, this);
             // If a previous Broadcast Receiver existed (same UUID), unregister it.
             if (replacedReceiver != null) {
                 try {
@@ -102,7 +102,7 @@ public class IntentShim extends CordovaPlugin
             cordova.getActivity().registerReceiver(this, filter);
         }
 
-        public bool Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+        public void Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
             Log.d(LOG_TAG, "Unregistering broadcast receiver #" + this.UUID);
             
             try {
@@ -194,7 +194,7 @@ public class IntentShim extends CordovaPlugin
 
                 String uuid = obj.has("uuid") ? obj.getString("uuid") : null;
                 UniqueBroadcastReceiver broadcastReceiver = new UniqueBroadcastReceiver(uuid, callbackContext);
-                broadcastReceiver.Register(this.cordova, broadcastReceivers, filter);
+                broadcastReceiver.Register(this.cordova, filter, broadcastReceivers);
                 
                 PluginResult result = new PluginResult(PluginResult.Status.OK, broadcastReceiver.UUID);
                 result.setKeepCallback(true);
@@ -206,7 +206,7 @@ public class IntentShim extends CordovaPlugin
                 if (uuid == "" )
                 {
                     // Unregister all registered broadcast receivers
-                    for (UniqueBroadcastReceiver broadcastReceiver:  new ArrayList<>(map.values()) {
+                    for (UniqueBroadcastReceiver broadcastReceiver:  new ArrayList<>(broadcastReceivers.values())) {
                         broadcastReceiver.Unregister(this.cordova, broadcastReceivers);
                     }
                 }
@@ -261,12 +261,6 @@ public class IntentShim extends CordovaPlugin
     
                 //finish the activity
                 cordova.getActivity().finish();
-            }
-            else if (action.equals("realPathFromUri"))
-            {
-                JSONObject obj = args.getJSONObject(0);
-                String realPath = getRealPathFromURI_API19(obj, callbackContext);
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, realPath));
             }
             else if (action.equals("packageExists"))
             {
@@ -344,54 +338,6 @@ public class IntentShim extends CordovaPlugin
             Log.e(LOG_TAG, "URL is not well formed");
             throw new RuntimeException("URL is not well formed", e);
         }
-    }
-
-    private String getRealPathFromURI_API19(JSONObject obj, CallbackContext callbackContext)
-    {
-        //  Credit: https://stackoverflow.com/questions/2789276/android-get-real-path-by-uri-getpath/2790688
-        try {
-            Uri uri = Uri.parse(obj.getString("uri"));
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                String filePath = "";
-                if (uri.getHost().contains("com.android.providers.media")) {
-                    int permissionCheck = ContextCompat.checkSelfPermission(this.cordova.getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
-                    if (permissionCheck != PackageManager.PERMISSION_GRANTED)
-                    {
-                        //  Could do better here - if the app does not already have permission should
-                        //  only continue when we get the success callback from this.
-                        ActivityCompat.requestPermissions(this.cordova.getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-                        throw new RuntimeException("Please grant read external storage permission");
-                    }
-                    // Image pick from recent
-                    String wholeID = DocumentsContract.getDocumentId(uri);
-                    // Split at colon, use second item in the array
-                    String id = wholeID.split(":")[1];
-                    String[] column = {MediaStore.Images.Media.DATA};
-                    // where id is equal to
-                    String sel = MediaStore.Images.Media._ID + "=?";
-                    //  This line requires read storage permission
-                    Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{id}, null);
-                    int columnIndex = cursor.getColumnIndex(column[0]);
-                    if (cursor.moveToFirst()) {
-                        filePath = cursor.getString(columnIndex);
-                    }
-                    cursor.close();
-                    return filePath;
-                } else {
-                    // image pick from gallery
-                    String[] proj = {MediaStore.Images.Media.DATA};
-                    Cursor cursor = this.cordova.getActivity().getApplicationContext().getContentResolver().query(uri, proj, null, null, null);
-                    int column_index
-                            = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                    cursor.moveToFirst();
-                    return cursor.getString(column_index);
-                }
-            }   
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "URL is not well formed");
-            throw new RuntimeException("URL is not well formed", e);
-        }
-        throw new RuntimeException("Requires KITKAT or higher");
     }
 
     /**
@@ -600,55 +546,35 @@ public class IntentShim extends CordovaPlugin
      * @param intent
      * Credit: https://github.com/napolitano/cordova-plugin-intent
      */
-    private JSONObject getIntentJson(Intent intent)
-    {
-        JSONObject intentJSON = null;
-        ClipData clipData = null;
-        JSONObject[] items = null;
-        ContentResolver cR = this.cordova.getActivity().getApplicationContext().getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            clipData = intent.getClipData();
-            if (clipData != null) {
-                int clipItemCount = clipData.getItemCount();
-                items = new JSONObject[clipItemCount];
-
-                for (int i = 0; i < clipItemCount; i++) {
-                    ClipData.Item item = clipData.getItemAt(i);
-                    try {
-                        items[i] = new JSONObject();
-                        items[i].put("htmlText", item.getHtmlText());
-                        items[i].put("intent", item.getIntent());
-                        items[i].put("text", item.getText());
-                        items[i].put("uri", item.getUri());
-
-                        if (item.getUri() != null) {
-                            String type = cR.getType(item.getUri());
-                            String extension = mime.getExtensionFromMimeType(cR.getType(item.getUri()));
-
-                            items[i].put("type", type);
-                            items[i].put("extension", extension);
-                        }
-
-                    }
-                    catch (Exception e) {
-                        throw new IllegalArgumentException("Error serializing (KITKAT) intent to JSON", e);
-                    }
-                }
-            }
-        }
-
+    private JSONObject getIntentJson(Intent intent) {
         try {
-            intentJSON = new JSONObject();
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                if (items != null) {
-                    intentJSON.put("clipItems", new JSONArray(items));
+            JSONObject intentJSON = new JSONObject();
+            ClipData clipData = intent.getClipData();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && clipData != null) {
+				ContentResolver contentResolver = this.cordova.getActivity().getApplicationContext().getContentResolver();
+				MimeTypeMap mime = MimeTypeMap.getSingleton();
+				
+                JSONArray clipItems = new JSONArray();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    JSONObject clipItem = new JSONObject();
+                    ClipData.Item item = clipData.getItemAt(i);
+                    if (item.getIntent() != null) {
+                        clipItem.put("intent", item.getIntent());
+                    }
+                    clipItem.put("htmlText", item.getHtmlText());
+                    clipItem.put("text", item.getText());
+					
+					Uri uri = item.getUri();
+					if (uri != null) {
+						clipItem.put("uri", uri);
+						clipItem.put("type", contentResolver.getType(uri));
+						clipItem.put("extension", mime.getExtensionFromMimeType(type));
+					}
+                    clipItems.put(clipItem);
                 }
+                intentJSON.put("clipItems", clipItems);
             }
-
-            intentJSON.put("type", intent.getType());
+			intentJSON.put("type", intent.getType());
             intentJSON.put("extras", toJsonObject(intent.getExtras()));
             intentJSON.put("action", intent.getAction());
             intentJSON.put("categories", intent.getCategories());
@@ -656,10 +582,8 @@ public class IntentShim extends CordovaPlugin
             intentJSON.put("component", intent.getComponent());
             intentJSON.put("data", intent.getData());
             intentJSON.put("package", intent.getPackage());
-
             return intentJSON;
-        }
-        catch (Exception e) {
+        } catch (JSONException e) {
             throw new RuntimeException("Error serializing intent to JSON", e);
         }
     }
