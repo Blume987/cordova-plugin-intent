@@ -26,6 +26,7 @@ import android.view.KeyEvent;
 import android.webkit.MimeTypeMap;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaActivity;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
@@ -61,7 +62,7 @@ public class IntentShim extends CordovaPlugin
         
         public UniqueBroadcastReceiver(String uuid, CallbackContext callbackContext) {
             super();
-            this.UUID = (uuid != null && !uuid.isEmpty()) ? uuid : UUID.randomUUID().toString();
+            this.UUID = (uuid != null && !uuid.isEmpty()) ? uuid : java.util.UUID.randomUUID().toString();
             this._callbackContext = callbackContext;
         }
     
@@ -153,7 +154,7 @@ public class IntentShim extends CordovaPlugin
                 JSONObject obj = args.getJSONObject(0);
                 Intent intent = populateIntent(obj, callbackContext);
     
-                this.cordova.getActivity().sendOrderedBroadcast(intent);
+                this.cordova.getActivity().sendOrderedBroadcast(intent, null);
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
             }
             else if (action.equals("startService"))
@@ -539,6 +540,7 @@ public class IntentShim extends CordovaPlugin
             throw new RuntimeException("Error deserializing JSON to intent", e);
         }
     }
+
     
     /**
      * Return JSON representation of intent attributes
@@ -546,34 +548,37 @@ public class IntentShim extends CordovaPlugin
      * @param intent
      * Credit: https://github.com/napolitano/cordova-plugin-intent
      */
-    private JSONObject getIntentJson(Intent intent) {
-        try {
-            JSONObject intentJSON = new JSONObject();
-            ClipData clipData = intent.getClipData();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && clipData != null) {
+	private JSONObject getIntentJson(Intent intent)
+	{
+		try {
+			JSONObject intentJSON = new JSONObject();
+			ClipData clipData = intent.getClipData();
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && clipData != null) {
 				ContentResolver contentResolver = this.cordova.getActivity().getApplicationContext().getContentResolver();
 				MimeTypeMap mime = MimeTypeMap.getSingleton();
 				
-                JSONArray clipItems = new JSONArray();
-                for (int i = 0; i < clipData.getItemCount(); i++) {
-                    JSONObject clipItem = new JSONObject();
-                    ClipData.Item item = clipData.getItemAt(i);
-                    if (item.getIntent() != null) {
-                        clipItem.put("intent", item.getIntent());
-                    }
-                    clipItem.put("htmlText", item.getHtmlText());
-                    clipItem.put("text", item.getText());
-					
+				JSONArray clipItems = new JSONArray();
+	            for (int i = 0; i < clipData.getItemCount(); i++) {
+					JSONObject clipItem = new JSONObject();
+					ClipData.Item item = clipData.getItemAt(i);
+					if (item.getIntent() != null) {
+						clipItem.put("intent", item.getIntent());
+					}
+					clipItem.put("htmlText", item.getHtmlText());
+					clipItem.put("text", item.getText());
+			
 					Uri uri = item.getUri();
 					if (uri != null) {
+						String type = contentResolver.getType(uri);
+						String extension = mime.getExtensionFromMimeType(type);
 						clipItem.put("uri", uri);
-						clipItem.put("type", contentResolver.getType(uri));
-						clipItem.put("extension", mime.getExtensionFromMimeType(type));
+						clipItem.put("type", type);
+						clipItem.put("extension", extension);
 					}
-                    clipItems.put(clipItem);
-                }
-                intentJSON.put("clipItems", clipItems);
-            }
+					clipItems.put(clipItem);
+				}
+				intentJSON.put("clipItems", clipItems);
+			}
 			intentJSON.put("type", intent.getType());
             intentJSON.put("extras", toJsonObject(intent.getExtras()));
             intentJSON.put("action", intent.getAction());
