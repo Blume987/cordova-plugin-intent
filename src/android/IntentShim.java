@@ -90,7 +90,11 @@ public class IntentShim extends CordovaPlugin {
                     cordova.getActivity().unregisterReceiver(replacedReceiver);
                 } catch (Exception e) {/* Don't care...*/ }
             }
-            ContextCompat.registerReceiver(cordova.getActivity(), this, filter, ContextCompat.RECEIVER_EXPORTED);
+            if (Build.VERSION.SDK_INT >= 34 && getApplicationInfo().targetSdkVersion >= 34) {
+                ContextCompat.registerReceiver(cordova.getActivity(), this, filter, ContextCompat.RECEIVER_EXPORTED);
+            } else {
+                ContextCompat.registerReceiver(cordova.getActivity(), this, filter);
+            }
         }
 
         public void Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
@@ -248,12 +252,6 @@ public class IntentShim extends CordovaPlugin {
 
                     //finish the activity
                     cordova.getActivity().finish();
-                    break;
-                }
-                case "realPathFromUri": {
-                    JSONObject obj = args.getJSONObject(0);
-                    String realPath = getRealPathFromURI_API19(obj, callbackContext);
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, realPath));
                     break;
                 }
                 case "packageExists":
