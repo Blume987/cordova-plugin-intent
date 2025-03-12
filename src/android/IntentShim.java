@@ -70,7 +70,7 @@ public class IntentShim extends CordovaPlugin {
             this._callbackContext.sendPluginResult(result);
         }
 
-        public void Register(CordovaInterface cordova, IntentFilter filter, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+        public void Register(IntentFilter filter) {
             StringBuilder sb = new StringBuilder();
             // Serialize actions
             sb.append("\nActions: ");
@@ -93,7 +93,7 @@ public class IntentShim extends CordovaPlugin {
             ContextCompat.registerReceiver(cordova.getActivity(), this, filter, ContextCompat.RECEIVER_EXPORTED);
         }
 
-        public void Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
+        public void Unregister() {
             Log.d(LOG_TAG, "Unregistering broadcast receiver #" + this.UUID);
             try {
                 cordova.getActivity().unregisterReceiver(this);
@@ -182,7 +182,7 @@ public class IntentShim extends CordovaPlugin {
 
                     String uuid = obj.has("uuid") ? obj.getString("uuid") : null;
                     UniqueBroadcastReceiver broadcastReceiver = new UniqueBroadcastReceiver(uuid, callbackContext);
-                    broadcastReceiver.Register(this.cordova, filter, broadcastReceivers);
+                    broadcastReceiver.Register(filter);
 
                     PluginResult result = new PluginResult(PluginResult.Status.OK, broadcastReceiver.UUID);
                     result.setKeepCallback(true);
@@ -195,13 +195,13 @@ public class IntentShim extends CordovaPlugin {
                     if (Objects.equals(uuid, "")) {
                         for(UniqueBroadcastReceiver receiver : broadcastReceivers.values()) {
                             if(receiver != null) {
-                                receiver.Unregister(this.cordova, broadcastReceivers);
+                                receiver.Unregister();
                             }
                         }
                     } else {
                         UniqueBroadcastReceiver broadcastReceiver = broadcastReceivers.get(uuid);
                         if (broadcastReceiver != null) {
-                            broadcastReceiver.Unregister(this.cordova, broadcastReceivers);
+                            broadcastReceiver.Unregister();
                         }
                     }
 
