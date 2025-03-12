@@ -49,10 +49,6 @@ module.exports = {
         argscheck.checkArgs('off', 'IntentShim.sendResult', arguments);
         exec(successCallback, errorCallback, "IntentShim", "sendResult", [arg]);
     },
-    realPathFromUri: function (arg, successCallback, errorCallback) {
-        argscheck.checkArgs('off', 'IntentShim.realPathFromUri', arguments);
-        exec(successCallback, errorCallback, "IntentShim", "realPathFromUri", [arg]);
-    },
     packageExists: function (packageName, successCallback, errorCallback) {
         argscheck.checkArgs('sff', 'IntentShim.packageExists', arguments);
         exec(successCallback, errorCallback, "IntentShim", "packageExists", [packageName]);
