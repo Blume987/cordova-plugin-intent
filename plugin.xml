@@ -11,7 +11,7 @@
 	<hook type="after_plugin_add" src="hooks/android/after_plugin_add.js" />
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="IntentShim" >
-                <param name="android-package" value="com.tiperes.cordova.plugin.intent.IntentShim"/>
+                <param name="android-package" value="com.blume987.cordova.plugin.intent.IntentShim"/>
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
@@ -25,7 +25,7 @@
     	</edit-config>
         <edit-config target="AndroidManifest.xml" parent="application">
             <provider
-                android:name="com.tiperes.cordova.plugin.intent.CordovaPluginIntentFileProvider"
+                android:name="com.blume987.cordova.plugin.intent.CordovaPluginIntentFileProvider"
                 android:authorities="${applicationId}.cordova.plugin.intent.fileprovider"
                 android:exported="false"
                 android:grantUriPermissions="true">
@@ -34,8 +34,8 @@
                     android:resource="@xml/intent_provider_paths"/>
             </provider>
         </edit-config>
-        <source-file src="src/android/IntentShim.java" target-dir="src/com/tiperes/plugin/intent" />
-        <source-file src="src/android/CordovaPluginIntentFileProvider.java" target-dir="src/com/tiperes/plugin/intent" />
+        <source-file src="src/android/IntentShim.java" target-dir="src/com/blume987/plugin/intent" />
+        <source-file src="src/android/CordovaPluginIntentFileProvider.java" target-dir="src/com/blume987/plugin/intent" />
 	<resource-file src="src/android/res/xml/intent_provider_paths.xml" target="res/xml/intent_provider_paths.xml"/>
 	<framework src="androidx.core:core:1.1.0" />
     </platform>
