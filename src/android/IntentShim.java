@@ -90,7 +90,7 @@ public class IntentShim extends CordovaPlugin {
                     cordova.getActivity().unregisterReceiver(replacedReceiver);
                 } catch (Exception e) {/* Don't care...*/ }
             }
-            ContextCompat.registerReceiver(cordova.getActivity(), this, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+            ContextCompat.registerReceiver(cordova.getActivity(), this, filter, ContextCompat.RECEIVER_EXPORTED);
         }
 
         public void Unregister(CordovaInterface cordova, Map<String, UniqueBroadcastReceiver> broadcastReceivers) {
