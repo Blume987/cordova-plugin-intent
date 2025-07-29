@@ -3,7 +3,7 @@ const path = require('path');
 
 // Enable support for AndroidX & Jetifier
 function androidXUpgrade (context) {
-    console.log("Start after prepare hook!);
+    console.log("Start after prepare hook!");
     const androidPlatformRoot = path.join(context.opts.projectRoot, 'platforms/android');
     const gradlePropertiesPath = path.join(androidPlatformRoot, 'gradle.properties');
 
