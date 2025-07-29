@@ -2,28 +2,35 @@
 <plugin id="cordova-plugin-intent" version="2.2.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>Intent Shim</name>
     <js-module name="IntentShim" src="www/IntentShim.js">
-        <clobbers target="cordova.plugins.IntentShim" />
+        <clobbers target="cordova.plugins.IntentShim"/>
     </js-module>
-    
+
+    <hook type="after_prepare" src="hooks/android/after_prepare.js"/>
+    <hook type="after_plugin_add" src="hooks/android/after_plugin_add.js"/>
+
     <!-- android -->
     <platform name="android">
-	<hook type="after_prepare" src="hooks/android/after_prepare.js" />
-	<hook type="after_plugin_add" src="hooks/android/after_plugin_add.js" />
+        <!-- IntentShim, TODO Intent filter? -->
         <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="IntentShim" >
+            <feature name="IntentShim">
                 <param name="android-package" value="com.blume987.cordova.plugin.intent.IntentShim"/>
                 <param name="onload" value="true"/>
             </feature>
         </config-file>
-	<edit-config target="AndroidManifest.xml" target="*" mode="merge">
-            <uses-permission android:name="com.symbol.datawedge.permission.contentprovider" />
-    	</edit-config>
-	<edit-config target="AndroidManifest.xml" target="*" mode="merge">
+        <!-- permissions -->
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="com.symbol.datawedge.permission.contentprovider"/>
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest">
             <queries>
-                <package android:name="com.symbol.datawedge" />
+                <package android:name="com.symbol.datawedge"/>
             </queries>
-    	</edit-config>
-        <edit-config target="AndroidManifest.xml" parent="application">
+        </config-file>
+        <!-- application -->
+        <config-file target="AndroidManifest.xml" parent="application">
             <provider
                 android:name="com.blume987.cordova.plugin.intent.CordovaPluginIntentFileProvider"
                 android:authorities="${applicationId}.cordova.plugin.intent.fileprovider"
@@ -33,11 +40,10 @@
                     android:name="android.support.FILE_PROVIDER_PATHS"
                     android:resource="@xml/intent_provider_paths"/>
             </provider>
-        </edit-config>
-        <source-file src="src/android/IntentShim.java" target-dir="src/com/blume987/plugin/intent" />
-        <source-file src="src/android/CordovaPluginIntentFileProvider.java" target-dir="src/com/blume987/plugin/intent" />
-	<resource-file src="src/android/res/xml/intent_provider_paths.xml" target="res/xml/intent_provider_paths.xml"/>
-	<framework src="androidx.core:core:1.1.0" />
+        </config-file>
+        <source-file src="src/android/IntentShim.java" target-dir="src/com/blume987/plugin/intent"/>
+        <source-file src="src/android/CordovaPluginIntentFileProvider.java" target-dir="src/com/blume987/plugin/intent"/>
+        <resource-file src="src/android/res/xml/intent_provider_paths.xml" target="res/xml/intent_provider_paths.xml"/>
+        <framework src="androidx.core:core:1.1.0"/>
     </platform>
-	
 </plugin>
